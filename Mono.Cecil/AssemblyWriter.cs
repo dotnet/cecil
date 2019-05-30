@@ -126,6 +126,8 @@ namespace Mono.Cecil {
 					if (parameters.DeterministicMvid) {
 						module.Mvid = ComputeGuid (stream.value);
 						writer.PatchMvid (module.Mvid);
+						if (symbol_writer is PortablePdbWriter ppdb_writer)
+							ppdb_writer.PatchMvid (module.Mvid);
 					}
 				}
 			} finally {

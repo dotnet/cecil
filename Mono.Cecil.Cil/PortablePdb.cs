@@ -276,6 +276,11 @@ namespace Mono.Cecil.Cil {
 			this.writer = writer;
 		}
 
+		public void PatchMvid (Guid guid)
+		{
+			writer.PatchMvid (guid);
+		}
+
 		public ISymbolReaderProvider GetReaderProvider ()
 		{
 			return new PortablePdbReaderProvider ();
