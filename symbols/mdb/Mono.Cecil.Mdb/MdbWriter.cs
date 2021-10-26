@@ -162,7 +162,7 @@ namespace Mono.Cecil.Mdb {
 					writer.DefineLocalVariable (variable.Index, variable.Name);
 		}
 
-		public ImageDebugHeader GetDebugHeader ()
+		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
 		{
 			return new ImageDebugHeader ();
 		}

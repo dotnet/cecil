@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-
+using System.Security.Cryptography;
 using Mono.Cecil.Metadata;
 using Mono.Cecil.PE;
 
@@ -39,7 +39,7 @@ namespace Mono.Cecil.Cil {
 
 		ISymbolReader GetSymbolReader (ModuleDefinition module, Disposable<Stream> symbolStream, string fileName)
 		{
-			return new PortablePdbReader (ImageReader.ReadPortablePdb (symbolStream, fileName), module);
+			return new PortablePdbReader (ImageReader.ReadPortablePdb (symbolStream, fileName, out _), module);
 		}
 	}
 
@@ -171,7 +171,7 @@ namespace Mono.Cecil.Cil {
 				throw new InvalidOperationException ();
 
 			return new EmbeddedPortablePdbReader (
-				(PortablePdbReader) new PortablePdbReaderProvider ().GetSymbolReader (module, GetPortablePdbStream (entry)));
+				(PortablePdbReader)new PortablePdbReaderProvider ().GetSymbolReader (module, GetPortablePdbStream (entry)));
 		}
 
 		static Stream GetPortablePdbStream (ImageDebugHeaderEntry entry)
@@ -194,8 +194,7 @@ namespace Mono.Cecil.Cil {
 		}
 	}
 
-	public sealed class EmbeddedPortablePdbReader : ISymbolReader
-	{
+	public sealed class EmbeddedPortablePdbReader : ISymbolReader {
 		private readonly PortablePdbReader reader;
 
 		internal EmbeddedPortablePdbReader (PortablePdbReader reader)
@@ -227,14 +226,13 @@ namespace Mono.Cecil.Cil {
 		}
 	}
 
-	public sealed class PortablePdbWriterProvider : ISymbolWriterProvider
-	{
+	public sealed class PortablePdbWriterProvider : ISymbolWriterProvider {
 		public ISymbolWriter GetSymbolWriter (ModuleDefinition module, string fileName)
 		{
 			Mixin.CheckModule (module);
 			Mixin.CheckFileName (fileName);
 
-			var file = File.OpenWrite (Mixin.GetPdbFileName (fileName));
+			var file = File.Open (Mixin.GetPdbFileName (fileName), FileMode.OpenOrCreate, FileAccess.ReadWrite);
 			return GetSymbolWriter (module, Disposable.Owned (file as Stream));
 		}
 
@@ -263,6 +261,10 @@ namespace Mono.Cecil.Cil {
 
 		MetadataBuilder module_metadata;
 
+		internal byte [] pdb_checksum;
+		internal Guid pdb_id_guid;
+		internal uint pdb_id_age;
+
 		bool IsEmbedded { get { return writer == null; } }
 
 		internal PortablePdbWriter (MetadataBuilder pdb_metadata, ModuleDefinition module)
@@ -289,45 +291,76 @@ namespace Mono.Cecil.Cil {
 			return new PortablePdbReaderProvider ();
 		}
 
-		public ImageDebugHeader GetDebugHeader ()
-		{
-			if (IsEmbedded)
-				return new ImageDebugHeader ();
-
-			var directory = new ImageDebugDirectory () {
-				MajorVersion = 256,
-				MinorVersion = 20557,
-				Type = ImageDebugType.CodeView,
-				TimeDateStamp = (int) module.timestamp,
-			};
-
-			var buffer = new ByteBuffer ();
-			// RSDS
-			buffer.WriteUInt32 (0x53445352);
-			// Module ID
-			buffer.WriteBytes (module.Mvid.ToByteArray ());
-			// PDB Age
-			buffer.WriteUInt32 (1);
-			// PDB Path
-			var fileName = writer.BaseStream.GetFileName ();
-			if (string.IsNullOrEmpty (fileName)) {
-				fileName = module.Assembly.Name.Name + ".pdb";
-			}
-			buffer.WriteBytes (System.Text.Encoding.UTF8.GetBytes (fileName));
-			buffer.WriteByte (0);
-
-			var data = new byte [buffer.length];
-			Buffer.BlockCopy (buffer.buffer, 0, data, 0, buffer.length);
-			directory.SizeOfData = data.Length;
-
-			return new ImageDebugHeader (new ImageDebugHeaderEntry (directory, data));
-		}
-
 		public void Write (MethodDebugInformation info)
 		{
 			CheckMethodDebugInformationTable ();
 
 			pdb_metadata.AddMethodDebugInformation (info);
+		}
+
+		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+		{
+			if (IsEmbedded)
+				return new ImageDebugHeader ();
+
+			WritePdbFile ();
+
+			ImageDebugHeaderEntry codeViewEntry;
+			{
+				var codeViewDirectory = new ImageDebugDirectory () {
+					MajorVersion = 256,
+					MinorVersion = 20557,
+					Type = ImageDebugType.CodeView,
+					TimeDateStamp = (int)module.timestamp,
+				};
+
+				var buffer = new ByteBuffer ();
+				// RSDS
+				buffer.WriteUInt32 (0x53445352);
+				// Module ID
+				buffer.WriteBytes (pdb_id_guid.ToByteArray ());
+				// PDB Age
+				buffer.WriteUInt32 (pdb_id_age);
+				// PDB Path
+				var fileName = writer.BaseStream.GetFileName ();
+				if (string.IsNullOrEmpty (fileName)) {
+					fileName = module.Assembly.Name.Name + ".pdb";
+				}
+				buffer.WriteBytes (System.Text.Encoding.UTF8.GetBytes (fileName));
+				buffer.WriteByte (0);
+
+				var data = new byte [buffer.length];
+				Buffer.BlockCopy (buffer.buffer, 0, data, 0, buffer.length);
+				codeViewDirectory.SizeOfData = data.Length;
+
+				codeViewEntry = new ImageDebugHeaderEntry (codeViewDirectory, data);
+			}
+
+			ImageDebugHeaderEntry pdbChecksumEntry;
+			{
+				var pdbChecksumDirectory = new ImageDebugDirectory () {
+					MajorVersion = 1,
+					MinorVersion = 0,
+					Type = ImageDebugType.PdbChecksum,
+					TimeDateStamp = 0
+				};
+
+				var buffer = new ByteBuffer ();
+				// SHA256 - Algorithm name
+				buffer.WriteBytes (System.Text.Encoding.UTF8.GetBytes ("SHA256"));
+				buffer.WriteByte (0);
+
+				// Checksum - 32 bytes
+				buffer.WriteBytes (pdb_checksum);
+
+				var data = new byte [buffer.length];
+				Buffer.BlockCopy (buffer.buffer, 0, data, 0, buffer.length);
+				pdbChecksumDirectory.SizeOfData = data.Length;
+
+				pdbChecksumEntry = new ImageDebugHeaderEntry (pdbChecksumDirectory, data);
+			}
+
+			return new ImageDebugHeader (new ImageDebugHeaderEntry [] { codeViewEntry, pdbChecksumEntry });
 		}
 
 		void CheckMethodDebugInformationTable ()
@@ -343,10 +376,7 @@ namespace Mono.Cecil.Cil {
 
 		public void Dispose ()
 		{
-			if (IsEmbedded)
-				return;
-
-			WritePdbFile ();
+			writer.stream.Dispose ();
 		}
 
 		void WritePdbFile ()
@@ -360,15 +390,18 @@ namespace Mono.Cecil.Cil {
 			writer.WriteMetadata ();
 
 			writer.Flush ();
-			writer.stream.Dispose ();
+
+			ComputeChecksumAndPdbId ();
+
+			WritePdbId ();
 		}
 
 		void WritePdbHeap ()
 		{
 			var pdb_heap = pdb_metadata.pdb_heap;
 
-			pdb_heap.WriteBytes (module.Mvid.ToByteArray ());
-			pdb_heap.WriteUInt32 (module_metadata.timestamp);
+			// PDB ID ( GUID + TimeStamp ) are left zeroed out for now. Will be filled at the end with a hash.
+			pdb_heap.WriteBytes (20);
 
 			pdb_heap.WriteUInt32 (module_metadata.entry_point.ToUInt32 ());
 
@@ -389,7 +422,7 @@ namespace Mono.Cecil.Cil {
 				if (tables [i] == null || tables [i].Length == 0)
 					continue;
 
-				pdb_heap.WriteUInt32 ((uint) tables [i].Length);
+				pdb_heap.WriteUInt32 ((uint)tables [i].Length);
 			}
 		}
 
@@ -398,6 +431,32 @@ namespace Mono.Cecil.Cil {
 			pdb_metadata.table_heap.string_offsets = pdb_metadata.string_heap.WriteStrings ();
 			pdb_metadata.table_heap.ComputeTableInformations ();
 			pdb_metadata.table_heap.WriteTableHeap ();
+		}
+
+		void ComputeChecksumAndPdbId ()
+		{
+			var buffer = new byte [8192];
+
+			// Compute the has of the entire file - PDB ID is zeroes still
+			writer.BaseStream.Seek (0, SeekOrigin.Begin);
+			var sha256 = SHA256.Create ();
+			using (var crypto_stream = new CryptoStream (Stream.Null, sha256, CryptoStreamMode.Write)) {
+				CryptoService.CopyStreamChunk (writer.BaseStream, crypto_stream, buffer, (int)writer.BaseStream.Length);
+			}
+
+			pdb_checksum = sha256.Hash;
+
+			var hashBytes = new ByteBuffer (pdb_checksum);
+			pdb_id_guid = new Guid (hashBytes.ReadBytes (16));
+			pdb_id_age = hashBytes.ReadUInt32 ();
+		}
+
+		void WritePdbId ()
+		{
+			// PDB ID is the first 20 bytes of the PdbHeap
+			writer.MoveToRVA (TextSegment.PdbHeap);
+			writer.WriteBytes (pdb_id_guid.ToByteArray ());
+			writer.WriteUInt32 (pdb_id_age);
 		}
 	}
 
@@ -409,7 +468,7 @@ namespace Mono.Cecil.Cil {
 			Mixin.CheckFileName (fileName);
 
 			var stream = new MemoryStream ();
-			var pdb_writer = (PortablePdbWriter) new PortablePdbWriterProvider ().GetSymbolWriter (module, stream);
+			var pdb_writer = (PortablePdbWriter)new PortablePdbWriterProvider ().GetSymbolWriter (module, stream);
 			return new EmbeddedPortablePdbWriter (stream, pdb_writer);
 		}
 
@@ -435,9 +494,14 @@ namespace Mono.Cecil.Cil {
 			return new EmbeddedPortablePdbReaderProvider ();
 		}
 
-		public ImageDebugHeader GetDebugHeader ()
+		public void Write (MethodDebugInformation info)
 		{
-			writer.Dispose ();
+			writer.Write (info);
+		}
+
+		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+		{
+			ImageDebugHeader pdbDebugHeader = writer.WriteSymbolsAndGetDebugHeader ();
 
 			var directory = new ImageDebugDirectory {
 				Type = ImageDebugType.EmbeddedPortablePdb,
@@ -453,24 +517,21 @@ namespace Mono.Cecil.Cil {
 			w.WriteByte (0x44);
 			w.WriteByte (0x42);
 
-			w.WriteInt32 ((int) stream.Length);
+			w.WriteInt32 ((int)stream.Length);
 
 			stream.Position = 0;
 
 			using (var compress_stream = new DeflateStream (data, CompressionMode.Compress, leaveOpen: true))
 				stream.CopyTo (compress_stream);
 
-			directory.SizeOfData = (int) data.Length;
+			directory.SizeOfData = (int)data.Length;
 
-			return new ImageDebugHeader (new [] {
-				writer.GetDebugHeader ().Entries [0],
-				new ImageDebugHeaderEntry (directory, data.ToArray ())
-			});
-		}
+			var debugHeaderEntries = new ImageDebugHeaderEntry [pdbDebugHeader.Entries.Length + 1];
+			for (int i = 0; i < pdbDebugHeader.Entries.Length; i++)
+				debugHeaderEntries [i] = pdbDebugHeader.Entries [i];
+			debugHeaderEntries [debugHeaderEntries.Length - 1] = new ImageDebugHeaderEntry (directory, data.ToArray ());
 
-		public void Write (MethodDebugInformation info)
-		{
-			writer.Write (info);
+			return new ImageDebugHeader (debugHeaderEntries);
 		}
 
 		public void Dispose ()
