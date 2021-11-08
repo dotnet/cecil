@@ -1,14 +1,14 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using NUnit.Framework;
 
 using Mono.Cecil.Cil;
 using Mono.Cecil.Pdb;
 using Mono.Cecil.PE;
-using System.Security.Cryptography;
-using System.IO.Compression;
 
 namespace Mono.Cecil.Tests {
 
@@ -182,7 +182,7 @@ namespace Mono.Cecil.Tests {
 
 				constant = scope.Constants [1];
 				Assert.AreEqual ("c", constant.Name);
-				Assert.AreEqual ((decimal)74, constant.Value);
+				Assert.AreEqual ((decimal) 74, constant.Value);
 				Assert.AreEqual (MetadataType.ValueType, constant.ConstantType.MetadataType);
 
 				method = type.GetMethod ("Foo");
@@ -353,7 +353,7 @@ namespace Mono.Cecil.Tests {
 		[Test]
 		public void EmbeddedCompressedPortablePdb ()
 		{
-			TestModule ("EmbeddedCompressedPdbTarget.exe", module => {
+			TestModule("EmbeddedCompressedPdbTarget.exe", module => {
 				Assert.IsTrue (module.HasDebugHeader);
 
 				var header = module.GetDebugHeader ();
@@ -388,7 +388,7 @@ namespace Mono.Cecil.Tests {
 				SymbolReaderProvider = new PdbReaderProvider ()
 			};
 
-			var module = ModuleDefinition.ReadModule (new MemoryStream (bytes), parameters);
+			var module = ModuleDefinition.ReadModule (new MemoryStream(bytes), parameters);
 			Assert.IsTrue (module.HasDebugHeader);
 
 			var header = module.GetDebugHeader ();
@@ -410,7 +410,7 @@ namespace Mono.Cecil.Tests {
 		{
 			TestModule ("PdbTarget.exe", test, symbolReaderProvider: typeof (PortablePdbReaderProvider), symbolWriterProvider: typeof (PortablePdbWriterProvider));
 			TestModule ("EmbeddedPdbTarget.exe", test, verify: !Platform.OnMono);
-			TestModule ("EmbeddedCompressedPdbTarget.exe", test, symbolReaderProvider: typeof (EmbeddedPortablePdbReaderProvider), symbolWriterProvider: typeof (EmbeddedPortablePdbWriterProvider));
+			TestModule ("EmbeddedCompressedPdbTarget.exe", test, symbolReaderProvider: typeof(EmbeddedPortablePdbReaderProvider), symbolWriterProvider: typeof (EmbeddedPortablePdbWriterProvider));
 		}
 
 		[Test]
@@ -573,7 +573,7 @@ class Program
     }
 }"), Normalize (a_src_content));
 
-				var b = GetDocument (module.GetType ("B"));
+				var b = GetDocument(module.GetType ("B"));
 				var b_src = GetSourceDebugInfo (b);
 				Assert.IsFalse (b_src.compress);
 				var b_src_content = Encoding.UTF8.GetString (b_src.Content);
@@ -614,7 +614,7 @@ class Program
 		}
 
 		[Test]
-		public void PortablePdbLineInfo ()
+		public void PortablePdbLineInfo()
 		{
 			TestModule ("line.exe", module => {
 				var type = module.GetType ("Tests");
@@ -682,7 +682,7 @@ class Program
 				writer.WriteBytes (reader.ReadBytes (16)); // MVID
 				writer.WriteUInt32 (reader.ReadUInt32 ()); // Age
 
-				var length = Array.IndexOf (entry.Data, (byte)0, reader.position) - reader.position;
+				var length = Array.IndexOf (entry.Data, (byte) 0, reader.position) - reader.position;
 
 				var fullPath = Encoding.UTF8.GetString (reader.ReadBytes (length));
 
@@ -769,7 +769,7 @@ class Program
 				const string resource = "foo.dll";
 				string destination = Path.GetTempFileName ();
 
-				using (var module = GetResourceModule (resource, new ReaderParameters { })) {
+				using (var module = GetResourceModule (resource, new ReaderParameters {  })) {
 					mvid1_in = module.Mvid;
 					module.Write (destination, new WriterParameters { DeterministicMvid = true });
 				}
@@ -783,7 +783,7 @@ class Program
 				const string resource = "hello2.exe";
 				string destination = Path.GetTempFileName ();
 
-				using (var module = GetResourceModule (resource, new ReaderParameters { })) {
+				using (var module = GetResourceModule (resource, new ReaderParameters {  })) {
 					mvid2_in = module.Mvid;
 					module.Write (destination, new WriterParameters { DeterministicMvid = true });
 				}
@@ -807,7 +807,7 @@ class Program
 				main.DebugInformation.SequencePoints.Clear ();
 
 				var destination = Path.Combine (Path.GetTempPath (), "mylib.dll");
-				module.Write (destination, new WriterParameters { WriteSymbols = true });
+				module.Write(destination, new WriterParameters { WriteSymbols = true });
 
 				Assert.Zero (main.DebugInformation.SequencePoints.Count);
 
