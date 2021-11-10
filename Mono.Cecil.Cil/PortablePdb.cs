@@ -235,7 +235,7 @@ namespace Mono.Cecil.Cil {
 			Mixin.CheckFileName (fileName);
 
 			var file = File.Open (Mixin.GetPdbFileName (fileName), FileMode.OpenOrCreate, FileAccess.ReadWrite);
-			return GetSymbolWriter (module, Disposable.Owned (file as Stream));
+			return GetSymbolWriter (module, Disposable.Owned (file as Stream), Disposable.NotOwned ((Stream)null));
 		}
 
 		public ISymbolWriter GetSymbolWriter (ModuleDefinition module, Stream symbolStream)
@@ -243,15 +243,18 @@ namespace Mono.Cecil.Cil {
 			Mixin.CheckModule (module);
 			Mixin.CheckStream (symbolStream);
 
-			return GetSymbolWriter (module, Disposable.NotOwned (symbolStream));
+			// In order to compute the PDB checksum, the stream we're writing to needs to be able to
+			// seek and read as well. We can't assume this about a stream provided by the user.
+			// So in this case, create a memory stream to cache the PDB.
+			return GetSymbolWriter (module, Disposable.Owned (new MemoryStream() as Stream), Disposable.NotOwned (symbolStream));
 		}
 
-		ISymbolWriter GetSymbolWriter (ModuleDefinition module, Disposable<Stream> stream)
+		ISymbolWriter GetSymbolWriter (ModuleDefinition module, Disposable<Stream> stream, Disposable<Stream> final_stream)
 		{
 			var metadata = new MetadataBuilder (module, this);
 			var writer = ImageWriter.CreateDebugWriter (module, metadata, stream);
 
-			return new PortablePdbWriter (metadata, module, writer);
+			return new PortablePdbWriter (metadata, module, writer, final_stream);
 		}
 	}
 
@@ -260,6 +263,7 @@ namespace Mono.Cecil.Cil {
 		readonly MetadataBuilder pdb_metadata;
 		readonly ModuleDefinition module;
 		readonly ImageWriter writer;
+		readonly Disposable<Stream> final_stream;
 
 		MetadataBuilder module_metadata;
 
@@ -282,10 +286,11 @@ namespace Mono.Cecil.Cil {
 			pdb_metadata.AddCustomDebugInformations (module);
 		}
 
-		internal PortablePdbWriter (MetadataBuilder pdb_metadata, ModuleDefinition module, ImageWriter writer)
+		internal PortablePdbWriter (MetadataBuilder pdb_metadata, ModuleDefinition module, ImageWriter writer, Disposable<Stream> final_stream)
 			: this (pdb_metadata, module)
 		{
 			this.writer = writer;
+			this.final_stream = final_stream;
 		}
 
 		public ISymbolReaderProvider GetReaderProvider ()
@@ -306,6 +311,12 @@ namespace Mono.Cecil.Cil {
 				return new ImageDebugHeader ();
 
 			WritePdbFile ();
+
+			if (final_stream.value != null) {
+				writer.BaseStream.Seek (0, SeekOrigin.Begin);
+				var buffer = new byte [8192];
+				CryptoService.CopyStreamChunk (writer.BaseStream, final_stream.value, buffer, (int)writer.BaseStream.Length);
+			}
 
 			ImageDebugHeaderEntry codeViewEntry;
 			{
@@ -379,6 +390,7 @@ namespace Mono.Cecil.Cil {
 		public void Dispose ()
 		{
 			writer.stream.Dispose ();
+			final_stream.Dispose ();
 		}
 
 		void WritePdbFile ()

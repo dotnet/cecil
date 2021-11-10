@@ -932,6 +932,24 @@ class Program
 		}
 
 		[Test]
+		public void WritePortablePdbToWriteOnlyStream ()
+		{
+			const string resource = "PdbChecksumLib.dll";
+			string destination = Path.GetTempFileName ();
+
+			// Note that the module stream already requires read access even on writing to be able to compute strong name
+			using (var module = GetResourceModule (resource, new ReaderParameters { ReadSymbols = true }))
+			using (var pdbStream = new FileStream (destination + ".pdb", FileMode.Create, FileAccess.Write)) {
+				module.Write (destination, new WriterParameters {
+					DeterministicMvid = true,
+					WriteSymbols = true,
+					SymbolWriterProvider = new PortablePdbWriterProvider (),
+					SymbolStream = pdbStream
+				});
+			}
+		}
+
+		[Test]
 		public void DoubleWritePortablePdbDeterministicPdbId ()
 		{
 			const string resource = "PdbChecksumLib.dll";
