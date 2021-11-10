@@ -120,7 +120,7 @@ namespace Mono.Cecil {
 
 					ImageDebugHeader debugHeader = null;
 					if (symbol_writer != null)
-						debugHeader = symbol_writer.WriteSymbolsAndGetDebugHeader ();
+						debugHeader = symbol_writer.GetDebugHeader ();
 
 					var writer = ImageWriter.CreateWriter (module, metadata, stream, debugHeader);
 					stream.value.SetLength (0);

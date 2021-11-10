@@ -653,9 +653,9 @@ class Program
 				this.symbol_writer = symbolWriter;
 			}
 
-			public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+			public ImageDebugHeader GetDebugHeader ()
 			{
-				var header = symbol_writer.WriteSymbolsAndGetDebugHeader ();
+				var header = symbol_writer.GetDebugHeader ();
 				if (!header.HasEntries)
 					return header;
 

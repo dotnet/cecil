@@ -42,7 +42,7 @@ namespace Mono.Cecil.Pdb {
 			return new NativePdbReaderProvider ();
 		}
 
-		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+		public ImageDebugHeader GetDebugHeader ()
 		{
 			var entry_point = module.EntryPoint;
 			if (entry_point != null)

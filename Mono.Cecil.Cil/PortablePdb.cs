@@ -305,7 +305,7 @@ namespace Mono.Cecil.Cil {
 			pdb_metadata.AddMethodDebugInformation (info);
 		}
 
-		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+		public ImageDebugHeader GetDebugHeader ()
 		{
 			if (IsEmbedded)
 				return new ImageDebugHeader ();
@@ -513,9 +513,9 @@ namespace Mono.Cecil.Cil {
 			writer.Write (info);
 		}
 
-		public ImageDebugHeader WriteSymbolsAndGetDebugHeader ()
+		public ImageDebugHeader GetDebugHeader ()
 		{
-			ImageDebugHeader pdbDebugHeader = writer.WriteSymbolsAndGetDebugHeader ();
+			ImageDebugHeader pdbDebugHeader = writer.GetDebugHeader ();
 
 			var directory = new ImageDebugDirectory {
 				Type = ImageDebugType.EmbeddedPortablePdb,
