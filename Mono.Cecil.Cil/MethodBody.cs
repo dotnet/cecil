@@ -306,7 +306,7 @@ namespace Mono.Cecil.Cil {
 			}
 		}
 
-		void UpdateDebugInformation (Instruction removed_instruction, Instruction existing_instruction)
+		void UpdateDebugInformation (Instruction removedInstruction, Instruction existingInstruction)
 		{
 			// Various bits of debug information store instruction offsets (as "pointers" to the IL)
 			// Instruction offset can be either resolved, in which case it
@@ -327,7 +327,7 @@ namespace Mono.Cecil.Cil {
 			//     - If there was an edit which adds some unresolved, the cost is proportional (the code will only resolve those)
 			//  - Then update as necessary by manipulaitng instruction references alone
 
-			InstructionOffsetResolver resolver = new InstructionOffsetResolver (items, removed_instruction, existing_instruction);
+			InstructionOffsetResolver resolver = new InstructionOffsetResolver (items, removedInstruction, existingInstruction);
 
 			if (method.debug_info != null)
 				UpdateLocalScope (method.debug_info.Scope, ref resolver);
@@ -367,30 +367,30 @@ namespace Mono.Cecil.Cil {
 			scope.End = resolver.Resolve (scope.End);
 		}
 
-		void UpdateStateMachineScope (StateMachineScopeDebugInformation debug_info, ref InstructionOffsetResolver resolver)
+		void UpdateStateMachineScope (StateMachineScopeDebugInformation debugInfo, ref InstructionOffsetResolver resolver)
 		{
 			resolver.Restart ();
-			foreach (var scope in debug_info.Scopes) {
+			foreach (var scope in debugInfo.Scopes) {
 				scope.Start = resolver.Resolve (scope.Start);
 				scope.End = resolver.Resolve (scope.End);
 			}
 		}
 
-		void UpdateAsyncMethodBody (AsyncMethodBodyDebugInformation debug_info, ref InstructionOffsetResolver resolver)
+		void UpdateAsyncMethodBody (AsyncMethodBodyDebugInformation debugInfo, ref InstructionOffsetResolver resolver)
 		{
-			if (!debug_info.CatchHandler.IsResolved) {
+			if (!debugInfo.CatchHandler.IsResolved) {
 				resolver.Restart ();
-				debug_info.CatchHandler = resolver.Resolve (debug_info.CatchHandler);
+				debugInfo.CatchHandler = resolver.Resolve (debugInfo.CatchHandler);
 			}
 
 			resolver.Restart ();
-			for (int i = 0; i < debug_info.Yields.Count; i++) {
-				debug_info.Yields [i] = resolver.Resolve (debug_info.Yields [i]);
+			for (int i = 0; i < debugInfo.Yields.Count; i++) {
+				debugInfo.Yields [i] = resolver.Resolve (debugInfo.Yields [i]);
 			}
 
 			resolver.Restart ();
-			for (int i = 0; i < debug_info.Resumes.Count; i++) {
-				debug_info.Resumes [i] = resolver.Resolve (debug_info.Resumes [i]);
+			for (int i = 0; i < debugInfo.Resumes.Count; i++) {
+				debugInfo.Resumes [i] = resolver.Resolve (debugInfo.Resumes [i]);
 			}
 		}
 
