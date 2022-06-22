@@ -306,12 +306,8 @@ namespace Mono.Cecil.Cil {
 			}
 		}
 
-		void UpdateDebugInformation (Instruction removedInstruction, Instruction existingInstruction)
+		void UpdateDebugInformation (Instruction removed_instruction, Instruction existing_instruction)
 		{
-			var debug_info = method.debug_info;
-			if (debug_info == null)
-				return;
-
 			// Various bits of debug information store instruction offsets (as "pointers" to the IL)
 			// Instruction offset can be either resolved, in which case it
 			// has a reference to Instruction, or unresolved in which case it stores numerical offset (instruction offset in the body).
@@ -331,21 +327,21 @@ namespace Mono.Cecil.Cil {
 			//     - If there was an edit which adds some unresolved, the cost is proportional (the code will only resolve those)
 			//  - Then update as necessary by manipulaitng instruction references alone
 
-			InstructionOffsetResolver resolver = new InstructionOffsetResolver (items, removedInstruction, existingInstruction);
+			InstructionOffsetResolver resolver = new InstructionOffsetResolver (items, removed_instruction, existing_instruction);
 
 			if (method.debug_info != null)
 				UpdateLocalScope (method.debug_info.Scope, ref resolver);
 
-			var customDebugInfo = method.custom_infos ?? method.debug_info?.custom_infos;
-			if (customDebugInfo != null) {
-				foreach (var custom_debug_info in customDebugInfo) {
+			var custom_debug_infos = method.custom_infos ?? method.debug_info?.custom_infos;
+			if (custom_debug_infos != null) {
+				foreach (var custom_debug_info in custom_debug_infos) {
 					switch (custom_debug_info) {
-					case StateMachineScopeDebugInformation stateMachineScope:
-						UpdateStateMachineScope (stateMachineScope, ref resolver);
+					case StateMachineScopeDebugInformation state_machine_scope:
+						UpdateStateMachineScope (state_machine_scope, ref resolver);
 						break;
 
-					case AsyncMethodBodyDebugInformation asyncMethoBody:
-						UpdateAsyncMethodBody (asyncMethoBody, ref resolver);
+					case AsyncMethodBodyDebugInformation async_method_body:
+						UpdateAsyncMethodBody (async_method_body, ref resolver);
 						break;
 
 					default:
@@ -371,30 +367,30 @@ namespace Mono.Cecil.Cil {
 			scope.End = resolver.Resolve (scope.End);
 		}
 
-		void UpdateStateMachineScope (StateMachineScopeDebugInformation debugInfo, ref InstructionOffsetResolver resolver)
+		void UpdateStateMachineScope (StateMachineScopeDebugInformation debug_info, ref InstructionOffsetResolver resolver)
 		{
 			resolver.Restart ();
-			foreach (var scope in debugInfo.Scopes) {
+			foreach (var scope in debug_info.Scopes) {
 				scope.Start = resolver.Resolve (scope.Start);
 				scope.End = resolver.Resolve (scope.End);
 			}
 		}
 
-		void UpdateAsyncMethodBody (AsyncMethodBodyDebugInformation debugInfo, ref InstructionOffsetResolver resolver)
+		void UpdateAsyncMethodBody (AsyncMethodBodyDebugInformation debug_info, ref InstructionOffsetResolver resolver)
 		{
-			if (!debugInfo.CatchHandler.IsResolved) {
+			if (!debug_info.CatchHandler.IsResolved) {
 				resolver.Restart ();
-				debugInfo.CatchHandler = resolver.Resolve (debugInfo.CatchHandler);
+				debug_info.CatchHandler = resolver.Resolve (debug_info.CatchHandler);
 			}
 
 			resolver.Restart ();
-			for (int i = 0; i < debugInfo.Yields.Count; i++) {
-				debugInfo.Yields [i] = resolver.Resolve (debugInfo.Yields [i]);
+			for (int i = 0; i < debug_info.Yields.Count; i++) {
+				debug_info.Yields [i] = resolver.Resolve (debug_info.Yields [i]);
 			}
 
 			resolver.Restart ();
-			for (int i = 0; i < debugInfo.Resumes.Count; i++) {
-				debugInfo.Resumes [i] = resolver.Resolve (debugInfo.Resumes [i]);
+			for (int i = 0; i < debug_info.Resumes.Count; i++) {
+				debug_info.Resumes [i] = resolver.Resolve (debug_info.Resumes [i]);
 			}
 		}
 
