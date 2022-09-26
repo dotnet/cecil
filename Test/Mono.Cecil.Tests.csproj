@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Mono.Cecil.Tests.props" />
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net40</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp">

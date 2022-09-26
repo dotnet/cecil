@@ -2,7 +2,8 @@
 <Project>
   <PropertyGroup>
     <!-- This repo version -->
-    <VersionPrefix>8.0.0</VersionPrefix>
+    <!-- We need to modify the version here manually everytime the version changes from the upstream branch jbevain/cecil -->
+    <VersionPrefix>0.11.4.0</VersionPrefix>
     <PreReleaseVersionLabel>beta</PreReleaseVersionLabel>
   </PropertyGroup>
 </Project>
