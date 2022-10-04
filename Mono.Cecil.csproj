@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <PackageId>Mono.Cecil</PackageId>
     <IsPackable>true</IsPackable>
   </PropertyGroup>

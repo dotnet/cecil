@@ -32,7 +32,6 @@ stages:
     parameters:
 
       enableTelemetry: true # send helix telemetry
-      helixRepo: dotnet/linker
       enablePublishUsingPipelines: true
       enablePublishBuildArtifacts: true # publish build logs to pipeline storage
       ${{ if eq(variables.officialBuild, 'false') }}:
@@ -40,8 +39,7 @@ stages:
         testResultsFormat: vstest
       enablePublishBuildAssets: true # generate build manifests and publish to BAR in internal builds
       enableMicrobuild: true # only affects internal builds
-      # See https://github.com/dotnet/source-build/issues/2049
-      # enableSourceBuild: true
+      enableSourceBuild: true
 
       jobs:
 
