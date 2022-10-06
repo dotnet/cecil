@@ -1,8 +1,9 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <PropertyGroup>
-    <!-- The TFM for the product (linker, task,.. not analyzer, which is netstandard) -->
+    <!-- The TFM for the product -->
     <ToolsFramework>netstandard2.0</ToolsFramework>
+    <!-- The TFM for the test projects -->
     <NetCoreAppTestsCurrent>net7.0</NetCoreAppTestsCurrent>
     <EnableDefaultItems>false</EnableDefaultItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -14,7 +15,7 @@
     <SignAssembly>true</SignAssembly>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\cecil.snk</AssemblyOriginatorKeyFile>
-    <DefineConstants Condition="'$(TargetFramework)' == '$(NetCoreAppToolCurrent)' OR '$(TargetFramework)' == '$(ToolsFramework)'">$(DefineConstants);NET_CORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET_CORE</DefineConstants>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
