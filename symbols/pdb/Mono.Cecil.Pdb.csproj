@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework>$(ToolsFramework)</TargetFramework>
     <NoWarn>0649</NoWarn>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>

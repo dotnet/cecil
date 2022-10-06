@@ -308,14 +308,12 @@ namespace Mono.Cecil {
 			if (TryGetAssemblyNameReference (name, out reference))
 				return reference;
 
-#pragma warning disable SYSLIB0037 // Type or member is obsolete
 			reference = new AssemblyNameReference (name.Name, name.Version)
 			{
 				PublicKeyToken = name.GetPublicKeyToken (),
 				Culture = name.CultureInfo.Name,
 				HashAlgorithm = (AssemblyHashAlgorithm) name.HashAlgorithm,
 			};
-#pragma warning restore SYSLIB0037 // Type or member is obsolete
 
 			module.AssemblyReferences.Add (reference);
 

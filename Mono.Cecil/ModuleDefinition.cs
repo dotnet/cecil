@@ -201,9 +201,7 @@ namespace Mono.Cecil {
 		bool write_symbols;
 		byte [] key_blob;
 		string key_container;
-#pragma warning disable SYSLIB0017 // Type or member is obsolete
 		SR.StrongNameKeyPair key_pair;
-#pragma warning restore SYSLIB0017 // Type or member is obsolete
 
 		public uint? Timestamp {
 			get { return timestamp; }
@@ -239,9 +237,7 @@ namespace Mono.Cecil {
 			set { key_container = value; }
 		}
 
-#pragma warning disable SYSLIB0017 // Type or member is obsolete
 		public SR.StrongNameKeyPair StrongNameKeyPair {
-#pragma warning restore SYSLIB0017 // Type or member is obsolete
 			get { return key_pair; }
 			set { key_pair = value; }
 		}

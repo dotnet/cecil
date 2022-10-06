@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <Import Project="..\..\..\Mono.Cecil.Tests.props" />
+  <PropertyGroup>
+    <TargetFramework>$(NetCoreAppTestsCurrent)</TargetFramework>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Mono.Cecil.csproj">
       <Name>Mono.Cecil</Name>

@@ -153,11 +153,9 @@ namespace Mono.Security.Cryptography {
 				// http://bugzilla.ximian.com/show_bug.cgi?id=77559
 				bool throws = false;
 				try {
-#pragma warning disable CA1416 // Validate platform compatibility
 					CspParameters csp = new CspParameters ();
 					csp.Flags = CspProviderFlags.UseMachineKeyStore;
 					rsa = new RSACryptoServiceProvider (csp);
-#pragma warning restore CA1416 // Validate platform compatibility
 					rsa.ImportParameters (rsap);
 				}
 				catch {
@@ -211,11 +209,9 @@ namespace Mono.Security.Cryptography {
 					// this may cause problem when this code is run under
 					// the SYSTEM identity on Windows (e.g. ASP.NET). See
 					// http://bugzilla.ximian.com/show_bug.cgi?id=77559
-#pragma warning disable CA1416 // Validate platform compatibility
 					CspParameters csp = new CspParameters ();
 					csp.Flags = CspProviderFlags.UseMachineKeyStore;
 					rsa = new RSACryptoServiceProvider (csp);
-#pragma warning restore CA1416 // Validate platform compatibility
 					rsa.ImportParameters (rsap);
 				}
 				return rsa;

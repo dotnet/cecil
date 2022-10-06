@@ -93,9 +93,7 @@ namespace Mono.Cecil {
 				+ (strong_name_directory.VirtualAddress - text.VirtualAddress));
 			var strong_name_length = (int) strong_name_directory.Size;
 
-#pragma warning disable SYSLIB0021 // Type or member is obsolete
 			var sha1 = new SHA1Managed ();
-#pragma warning restore SYSLIB0021 // Type or member is obsolete
 			var buffer = new byte [buffer_size];
 			using (var crypto_stream = new CryptoStream (Stream.Null, sha1, CryptoStreamMode.Write)) {
 				stream.Seek (0, SeekOrigin.Begin);
@@ -133,9 +131,7 @@ namespace Mono.Cecil {
 		{
 			const int buffer_size = 8192;
 
-#pragma warning disable SYSLIB0021 // Type or member is obsolete
 			var sha1 = new SHA1Managed ();
-#pragma warning restore SYSLIB0021 // Type or member is obsolete
 			var buffer = new byte [buffer_size];
 
 			using (var crypto_stream = new CryptoStream (Stream.Null, sha1, CryptoStreamMode.Write))
@@ -146,9 +142,7 @@ namespace Mono.Cecil {
 
 		public static byte [] ComputeHash (params ByteBuffer [] buffers)
 		{
-#pragma warning disable SYSLIB0021 // Type or member is obsolete
 			var sha1 = new SHA1Managed ();
-#pragma warning restore SYSLIB0021 // Type or member is obsolete
 
 			using (var crypto_stream = new CryptoStream (Stream.Null, sha1, CryptoStreamMode.Write)) {
 				for (int i = 0; i < buffers.Length; i++) {
@@ -188,7 +182,6 @@ namespace Mono.Cecil {
 			else if (!TryGetKeyContainer (writer_parameters.StrongNameKeyPair, out key, out key_container))
 				return CryptoConvert.FromCapiKeyBlob (key);
 
-#pragma warning disable CA1416 // Validate platform compatibility
 			var parameters = new CspParameters {
 				Flags = CspProviderFlags.UseMachineKeyStore,
 				KeyContainerName = key_container,
@@ -196,14 +189,11 @@ namespace Mono.Cecil {
 			};
 
 			return new RSACryptoServiceProvider (parameters);
-#pragma warning restore CA1416 // Validate platform compatibility
 		}
 
 		static bool TryGetKeyContainer (ISerializable key_pair, out byte [] key, out string key_container)
 		{
-#pragma warning disable SYSLIB0017 // Type or member is obsolete
 			var info = new SerializationInfo (typeof (StrongNameKeyPair), new FormatterConverter ());
-#pragma warning restore SYSLIB0017 // Type or member is obsolete
 			key_pair.GetObjectData (info, new StreamingContext ());
 
 			key = (byte []) info.GetValue ("_keyPairArray", typeof (byte []));

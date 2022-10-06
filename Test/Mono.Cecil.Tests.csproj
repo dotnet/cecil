@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Mono.Cecil.Tests.props" />
-  <ItemGroup Condition=" '$(TargetFramework)' == '$(NetCoreAppToolCurrent)' ">
+  <PropertyGroup>
+    <TargetFramework>$(NetCoreAppTestsCurrent)</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == '$(NetCoreAppTestsCurrent)' ">
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
       <Version>2.10.0</Version>
     </PackageReference>
