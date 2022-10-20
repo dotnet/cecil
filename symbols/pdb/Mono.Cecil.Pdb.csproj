@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(ToolsFramework)</TargetFramework>
+    <PackageId>Mono.Cecil.Pdb</PackageId>
+    <IsPackable>true</IsPackable>
     <NoWarn>0649</NoWarn>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
