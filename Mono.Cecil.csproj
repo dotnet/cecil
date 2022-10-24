@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(ToolsFramework)</TargetFramework>
-    <PackageId>Mono.Cecil</PackageId>
+    <PackageId>Microsoft.DotNet.Cecil</PackageId>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
