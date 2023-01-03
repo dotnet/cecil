@@ -17,6 +17,7 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\cecil.snk</AssemblyOriginatorKeyFile>
     <DefineConstants>$(DefineConstants);NET_CORE</DefineConstants>
     <RootNamespace></RootNamespace>
+    <PackageId>$(MSBuildProjectName.Replace('Mono', 'Microsoft.DotNet'))</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
