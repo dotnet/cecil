@@ -4,7 +4,7 @@
     <!-- The TFM for the product -->
     <ToolsFramework>netstandard2.0</ToolsFramework>
     <!-- The TFM for the test projects -->
-    <NetCoreAppTestsCurrent>net7.0</NetCoreAppTestsCurrent>
+    <NetCoreAppTestsCurrent>$(NetCurrent)</NetCoreAppTestsCurrent>
     <EnableDefaultItems>false</EnableDefaultItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
