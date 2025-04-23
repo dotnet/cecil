@@ -320,7 +320,7 @@ namespace Mono.Cecil.Tests {
 		public static ProcessOutput ILAsm (string source, string output)
 		{
 			// get ilasm from the test execution directory
-			var ilasmPath = Path.Combine (AppContext.BaseDirectory, "runtimes", RuntimeInformation.RuntimeIdentifier, "native" , Platform.OnWindows ? "ilasm.exe" : "ilasm");
+			var ilasmPath = Directory.GetFiles (AppContext.BaseDirectory, Platform.OnWindows ? "ilasm.exe" : "ilasm", SearchOption.AllDirectories)[0];
 
 			return RunProcess (ilasmPath, "-nologo", "-dll", "-output=" + Quote (output), Quote (source));
 		}
