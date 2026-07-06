@@ -175,9 +175,9 @@ try {
     }
     # Disable node reuse on CI unless explicitly opted in via MSBUILD_NODEREUSE_ENABLED.
     # Internal testing only; this env var will be replaced with a switch (https://github.com/dotnet/arcade/issues/17013) and must not be depended on.
-    if ($env:MSBUILD_NODEREUSE_ENABLED -ne "1") {
-      $nodeReuse = $false
-    }
+    #if ($env:MSBUILD_NODEREUSE_ENABLED -ne "1") {
+    #  $nodeReuse = $false
+    #}
   }
 
   if (-not [string]::IsNullOrEmpty($binaryLogName)) {
