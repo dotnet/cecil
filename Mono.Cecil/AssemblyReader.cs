@@ -2838,9 +2838,6 @@ namespace Mono.Cecil {
 		{
 			InitializeDocuments ();
 
-			for (uint rid = 1; rid <= (uint) metadata.Documents.Length; rid++)
-				GetDocument (rid);
-
 			return new Collection<Document> (metadata.Documents);
 		}
 
