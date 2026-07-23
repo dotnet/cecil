@@ -548,6 +548,9 @@ namespace Mono.Cecil.Tests {
 		public void EmbeddedSource ()
 		{
 			TestModule ("embedcs.exe", module => {
+				Assert.AreEqual (3, module.Documents.Count);
+				foreach (var document in module.Documents)
+					GetSourceDebugInfo (document);
 			}, symbolReaderProvider: typeof (PortablePdbReaderProvider), symbolWriterProvider: typeof (PortablePdbWriterProvider));
 
 			TestModule ("embedcs.exe", module => {
