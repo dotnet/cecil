@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>$(ToolsFramework)</TargetFramework>
+    <TargetFrameworks>$(ToolsFramework);net8.0</TargetFrameworks>
+    <IsAotCompatible Condition="'$(TargetFramework)' == 'net8.0'">true</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ProjectInfo.cs" />

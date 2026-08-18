@@ -10,6 +10,9 @@
 
 using System;
 using System.Collections.Generic;
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
 using Mono.Collections.Generic;
 using SR = System.Reflection;
 
@@ -122,6 +125,9 @@ namespace Mono.Cecil {
 		}
 	}
 
+#if NET
+	[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 	public class DefaultReflectionImporter : IReflectionImporter {
 
 		readonly protected ModuleDefinition module;

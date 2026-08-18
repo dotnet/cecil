@@ -10,6 +10,9 @@
 
 using System;
 using System.Collections.Generic;
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.IO;
 using System.Threading;
 using SR = System.Reflection;
@@ -383,6 +386,9 @@ namespace Mono.Cecil {
 		}
 
 		internal IReflectionImporter ReflectionImporter {
+#if NET
+			[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 			get {
 				if (reflection_importer == null)
 					Interlocked.CompareExchange (ref reflection_importer, new DefaultReflectionImporter (this), null);
@@ -803,22 +809,34 @@ namespace Mono.Cecil {
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public TypeReference Import (Type type)
 		{
 			return ImportReference (type, null);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public TypeReference ImportReference (Type type)
 		{
 			return ImportReference (type, null);
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public TypeReference Import (Type type, IGenericParameterProvider context)
 		{
 			return ImportReference (type, context);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public TypeReference ImportReference (Type type, IGenericParameterProvider context)
 		{
 			Mixin.CheckType (type);
@@ -828,22 +846,34 @@ namespace Mono.Cecil {
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public FieldReference Import (SR.FieldInfo field)
 		{
 			return ImportReference (field, null);
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public FieldReference Import (SR.FieldInfo field, IGenericParameterProvider context)
 		{
 			return ImportReference (field, context);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public FieldReference ImportReference (SR.FieldInfo field)
 		{
 			return ImportReference (field, null);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public FieldReference ImportReference (SR.FieldInfo field, IGenericParameterProvider context)
 		{
 			Mixin.CheckField (field);
@@ -853,22 +883,34 @@ namespace Mono.Cecil {
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public MethodReference Import (SR.MethodBase method)
 		{
 			return ImportReference (method, null);
 		}
 
 		[Obsolete ("Use ImportReference", error: false)]
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public MethodReference Import (SR.MethodBase method, IGenericParameterProvider context)
 		{
 			return ImportReference (method, context);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public MethodReference ImportReference (SR.MethodBase method)
 		{
 			return ImportReference (method, null);
 		}
 
+#if NET
+		[RequiresUnreferencedCode ("The default reflection importer uses reflection to import references.")]
+#endif
 		public MethodReference ImportReference (SR.MethodBase method, IGenericParameterProvider context)
 		{
 			Mixin.CheckMethod (method);
