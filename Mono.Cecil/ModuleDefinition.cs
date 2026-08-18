@@ -204,7 +204,9 @@ namespace Mono.Cecil {
 		bool write_symbols;
 		byte [] key_blob;
 		string key_container;
+#if !NET
 		SR.StrongNameKeyPair key_pair;
+#endif
 
 		public uint? Timestamp {
 			get { return timestamp; }
@@ -227,7 +229,11 @@ namespace Mono.Cecil {
 		}
 
 		public bool HasStrongNameKey {
+#if NET
+			get { return key_blob != null || key_container != null; }
+#else
 			get { return key_pair != null || key_blob != null || key_container != null; }
+#endif
 		}
 
 		public byte [] StrongNameKeyBlob {
@@ -240,10 +246,12 @@ namespace Mono.Cecil {
 			set { key_container = value; }
 		}
 
+#if !NET
 		public SR.StrongNameKeyPair StrongNameKeyPair {
 			get { return key_pair; }
 			set { key_pair = value; }
 		}
+#endif
 
 		public bool DeterministicMvid { get; set; }
 	}

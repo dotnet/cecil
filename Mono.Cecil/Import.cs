@@ -331,9 +331,11 @@ namespace Mono.Cecil {
 			{
 				PublicKeyToken = name.GetPublicKeyToken (),
 				Culture = name.CultureInfo.Name,
-				HashAlgorithm = (AssemblyHashAlgorithm) name.HashAlgorithm,
 			};
 
+#if !NET
+			reference.HashAlgorithm = (AssemblyHashAlgorithm) name.HashAlgorithm;
+#endif
 			module.AssemblyReferences.Add (reference);
 
 			return reference;
