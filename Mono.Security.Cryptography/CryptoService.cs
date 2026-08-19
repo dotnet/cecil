@@ -206,6 +206,7 @@ namespace Mono.Cecil {
 		}
 
 #if !NET
+		// StrongNameKeyPair and BinaryFormatter are not support in .NET Core
 		static bool TryGetKeyContainer (ISerializable key_pair, out byte [] key, out string key_container)
 		{
 			var info = new SerializationInfo (typeof (StrongNameKeyPair), new FormatterConverter ());
