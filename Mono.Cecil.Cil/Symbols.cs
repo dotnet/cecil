@@ -10,9 +10,7 @@
 
 using System;
 using System.Collections.Generic;
-#if NET
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -1034,9 +1032,7 @@ namespace Mono.Cecil.Cil {
 
 	static class SymbolProvider {
 
-#if NET
 		[return: DynamicallyAccessedMembers (DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-#endif
 		static Type GetSymbolType (SymbolKind kind)
 		{
 			switch (kind) {
