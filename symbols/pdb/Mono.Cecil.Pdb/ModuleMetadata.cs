@@ -1,21 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
+#if NET10_0_OR_GREATER
+using System.Runtime.InteropServices.Marshalling;
+#endif
 
 namespace Mono.Cecil.Pdb {
 
 	// WARNING: most methods should be reworked into PreserveSig methods
 
-	[ComImport, InterfaceType (ComInterfaceType.InterfaceIsIUnknown), Guid ("BA3FEE4C-ECB9-4e41-83B7-183FA41CD859")]
-	unsafe interface IMetaDataEmit {
+	[InterfaceType (ComInterfaceType.InterfaceIsIUnknown), Guid ("BA3FEE4C-ECB9-4e41-83B7-183FA41CD859")]
+#if NET10_0_OR_GREATER
+	[GeneratedComInterface (StringMarshalling = StringMarshalling.Utf16, Options = ComInterfaceOptions.ManagedObjectWrapper)]
+#else
+	[ComImport]
+#endif
+	unsafe partial interface IMetaDataEmit {
 		void SetModuleProps (string szName);
 		void Save (string szFile, uint dwSaveFlags);
 		void SaveToStream (IntPtr pIStream, uint dwSaveFlags);
 		uint GetSaveSize (uint fSave);
 		uint DefineTypeDef (IntPtr szTypeDef, uint dwTypeDefFlags, uint tkExtends, IntPtr rtkImplements);
 		uint DefineNestedType (IntPtr szTypeDef, uint dwTypeDefFlags, uint tkExtends, IntPtr rtkImplements, uint tdEncloser);
-		void SetHandler ([MarshalAs (UnmanagedType.IUnknown), In]object pUnk);
+		void SetHandler (IntPtr pUnk);
 		uint DefineMethod (uint td, IntPtr zName, uint dwMethodFlags, IntPtr pvSigBlob, uint cbSigBlob, uint ulCodeRVA, uint dwImplFlags);
 		void DefineMethodImpl (uint td, uint tkBody, uint tkDecl);
 		uint DefineTypeRefByName (uint tkResolutionScope, IntPtr szName);
@@ -55,17 +62,22 @@ namespace Mono.Cecil.Pdb {
 		void SetPropertyProps (uint pr, uint dwPropFlags, uint dwCPlusTypeFlag, IntPtr /* void* */ pValue, uint cchValue, uint mdSetter, uint mdGetter, IntPtr /* uint* */ rmdOtherMethods);
 		void SetParamProps (uint pd, string szName, uint dwParamFlags, uint dwCPlusTypeFlag, IntPtr /* void* */ pValue, uint cchValue);
 		uint DefineSecurityAttributeSet (uint tkObj, IntPtr rSecAttrs, uint cSecAttrs);
-		void ApplyEditAndContinue ([MarshalAs (UnmanagedType.IUnknown)]object pImport);
+		void ApplyEditAndContinue (IntPtr pImport);
 		uint TranslateSigWithScope (IntPtr pAssemImport, IntPtr /* void* */ pbHashValue, uint cbHashValue,
 		  IMetaDataImport import, IntPtr /* byte* */ pbSigBlob, uint cbSigBlob, IntPtr pAssemEmit, IMetaDataEmit emit, IntPtr /* byte* */ pvTranslatedSig, uint cbTranslatedSigMax);
 		void SetMethodImplFlags (uint md, uint dwImplFlags);
 		void SetFieldRVA (uint fd, uint ulRVA);
-		void Merge (IMetaDataImport pImport, IntPtr pHostMapToken, [MarshalAs (UnmanagedType.IUnknown)]object pHandler);
+		void Merge (IMetaDataImport pImport, IntPtr pHostMapToken, IntPtr pHandler);
 		void MergeEnd ();
 	}
 
-	[ComImport, InterfaceType (ComInterfaceType.InterfaceIsIUnknown), Guid ("7DAC8207-D3AE-4c75-9B67-92801A497D44")]
-	unsafe interface IMetaDataImport {
+	[InterfaceType (ComInterfaceType.InterfaceIsIUnknown), Guid ("7DAC8207-D3AE-4c75-9B67-92801A497D44")]
+#if NET10_0_OR_GREATER
+	[GeneratedComInterface (StringMarshalling = StringMarshalling.Utf16, Options = ComInterfaceOptions.ManagedObjectWrapper)]
+#else
+	[ComImport]
+#endif
+	unsafe partial interface IMetaDataImport {
 		[PreserveSig]
 		void CloseEnum (uint hEnum);
 		uint CountEnum (uint hEnum);
@@ -74,14 +86,14 @@ namespace Mono.Cecil.Pdb {
 		uint EnumInterfaceImpls (ref uint phEnum, uint td, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 3)] uint [] rImpls, uint cMax);
 		uint EnumTypeRefs (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rTypeRefs, uint cMax);
 		uint FindTypeDefByName (string szTypeDef, uint tkEnclosingClass);
-		Guid GetScopeProps (StringBuilder szName, uint cchName, out uint pchName);
+		Guid GetScopeProps (char* szName, uint cchName, out uint pchName);
 		uint GetModuleFromScope ();
 
 		[PreserveSig]
 		uint GetTypeDefProps (uint td, char* szTypeDef, uint cchTypeDef, uint* pchTypeDef, uint* pdwTypeDefFlags, uint* ptkExtends);
 		uint GetInterfaceImplProps (uint iiImpl, out uint pClass);
-		uint GetTypeRefProps (uint tr, out uint ptkResolutionScope, StringBuilder szName, uint cchName);
-		uint ResolveTypeRef (uint tr, [In] ref Guid riid, [MarshalAs (UnmanagedType.Interface)] out object ppIScope);
+		uint GetTypeRefProps (uint tr, out uint ptkResolutionScope, char* szName, uint cchName);
+		uint ResolveTypeRef (uint tr, ref Guid riid, out IntPtr ppIScope);
 		uint EnumMembers (ref uint phEnum, uint cl, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 3)] uint [] rMembers, uint cMax);
 		uint EnumMembersWithName (ref uint phEnum, uint cl, string szName, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 4)] uint [] rMembers, uint cMax);
 		uint EnumMethods (ref uint phEnum, uint cl, IntPtr /* uint* */ rMethods, uint cMax);
@@ -101,26 +113,26 @@ namespace Mono.Cecil.Pdb {
 
 		[PreserveSig]
 		uint GetMethodProps (uint mb, uint* pClass, char* szMethod, uint cchMethod, uint* pchMethod, uint* pdwAttr, IntPtr ppvSigBlob, IntPtr pcbSigBlob, uint* pulCodeRVA, uint* pdwImplFlags);
-		uint GetMemberRefProps (uint mr, ref uint ptk, StringBuilder szMember, uint cchMember, out uint pchMember, out IntPtr /* byte* */ ppvSigBlob);
+		uint GetMemberRefProps (uint mr, ref uint ptk, char* szMember, uint cchMember, out uint pchMember, out IntPtr /* byte* */ ppvSigBlob);
 		uint EnumProperties (ref uint phEnum, uint td, IntPtr /* uint* */ rProperties, uint cMax);
 		uint EnumEvents (ref uint phEnum, uint td, IntPtr /* uint* */ rEvents, uint cMax);
-		uint GetEventProps (uint ev, out uint pClass, StringBuilder szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags,
+		uint GetEventProps (uint ev, out uint pClass, char* szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags,
 		  out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire,
 		  [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 11)] uint [] rmdOtherMethod, uint cMax);
 		uint EnumMethodSemantics (ref uint phEnum, uint mb, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 3)] uint [] rEventProp, uint cMax);
 		uint GetMethodSemantics (uint mb, uint tkEventProp);
-		uint GetClassLayout (uint td, out uint pdwPackSize, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 3)] IntPtr /*COR_FIELD_OFFSET **/ rFieldOffset, uint cMax, out uint pcFieldOffset);
+		uint GetClassLayout (uint td, out uint pdwPackSize, IntPtr /*COR_FIELD_OFFSET **/ rFieldOffset, uint cMax, out uint pcFieldOffset);
 		uint GetFieldMarshal (uint tk, out IntPtr /* byte* */ ppvNativeType);
 		uint GetRVA (uint tk, out uint pulCodeRVA);
 		uint GetPermissionSetProps (uint pm, out uint pdwAction, out IntPtr /* void* */ ppvPermission);
 		uint GetSigFromToken (uint mdSig, out IntPtr /* byte* */ ppvSig);
-		uint GetModuleRefProps (uint mur, StringBuilder szName, uint cchName);
+		uint GetModuleRefProps (uint mur, char* szName, uint cchName);
 		uint EnumModuleRefs (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rModuleRefs, uint cmax);
 		uint GetTypeSpecFromToken (uint typespec, out IntPtr /* byte* */ ppvSig);
 		uint GetNameFromToken (uint tk);
 		uint EnumUnresolvedMethods (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rMethods, uint cMax);
-		uint GetUserString (uint stk, StringBuilder szString, uint cchString);
-		uint GetPinvokeMap (uint tk, out uint pdwMappingFlags, StringBuilder szImportName, uint cchImportName, out uint pchImportName);
+		uint GetUserString (uint stk, char* szString, uint cchString);
+		uint GetPinvokeMap (uint tk, out uint pdwMappingFlags, char* szImportName, uint cchImportName, out uint pchImportName);
 		uint EnumSignatures (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rSignatures, uint cmax);
 		uint EnumTypeSpecs (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rTypeSpecs, uint cmax);
 		uint EnumUserStrings (ref uint phEnum, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 2)] uint [] rStrings, uint cmax);
@@ -129,14 +141,14 @@ namespace Mono.Cecil.Pdb {
 		uint EnumCustomAttributes (ref uint phEnum, uint tk, uint tkType, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 4)] uint [] rCustomAttributes, uint cMax);
 		uint GetCustomAttributeProps (uint cv, out uint ptkObj, out uint ptkType, out IntPtr /* void* */ ppBlob);
 		uint FindTypeRef (uint tkResolutionScope, string szName);
-		uint GetMemberProps (uint mb, out uint pClass, StringBuilder szMember, uint cchMember, out uint pchMember, out uint pdwAttr,
+		uint GetMemberProps (uint mb, out uint pClass, char* szMember, uint cchMember, out uint pchMember, out uint pdwAttr,
 		  out IntPtr /* byte* */ ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out IntPtr /* void* */ ppValue);
-		uint GetFieldProps (uint mb, out uint pClass, StringBuilder szField, uint cchField, out uint pchField, out uint pdwAttr,
+		uint GetFieldProps (uint mb, out uint pClass, char* szField, uint cchField, out uint pchField, out uint pdwAttr,
 		  out IntPtr /* byte* */ ppvSigBlob, out uint pcbSigBlob, out uint pdwCPlusTypeFlag, out IntPtr /* void* */ ppValue);
-		uint GetPropertyProps (uint prop, out uint pClass, StringBuilder szProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags,
+		uint GetPropertyProps (uint prop, out uint pClass, char* szProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags,
 		  out IntPtr /* byte* */ ppvSig, out uint pbSig, out uint pdwCPlusTypeFlag, out IntPtr /* void* */ ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter,
 		  out uint pmdGetter, [MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 14)] uint [] rmdOtherMethod, uint cMax);
-		uint GetParamProps (uint tk, out uint pmd, out uint pulSequence, StringBuilder szName, uint cchName, out uint pchName,
+		uint GetParamProps (uint tk, out uint pmd, out uint pulSequence, char* szName, uint cchName, out uint pchName,
 		  out uint pdwAttr, out uint pdwCPlusTypeFlag, out IntPtr /* void* */ ppValue);
 		uint GetCustomAttributeByName (uint tkObj, string szName, out IntPtr /* void* */ ppData);
 		[PreserveSig]
@@ -148,7 +160,10 @@ namespace Mono.Cecil.Pdb {
 		int IsGlobal (uint pd);
 	}
 
-	unsafe class ModuleMetadata : IMetaDataEmit, IMetaDataImport {
+#if NET10_0_OR_GREATER
+	[GeneratedComClass]
+#endif
+	unsafe partial class ModuleMetadata : IMetaDataEmit, IMetaDataImport {
 
 		readonly ModuleDefinition module;
 
@@ -226,7 +241,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public void SetHandler (object pUnk)
+		public void SetHandler (IntPtr pUnk)
 		{
 			throw new NotImplementedException ();
 		}
@@ -411,7 +426,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public void ApplyEditAndContinue (object pImport)
+		public void ApplyEditAndContinue (IntPtr pImport)
 		{
 			throw new NotImplementedException ();
 		}
@@ -431,7 +446,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public void Merge (IMetaDataImport pImport, IntPtr pHostMapToken, object pHandler)
+		public void Merge (IMetaDataImport pImport, IntPtr pHostMapToken, IntPtr pHandler)
 		{
 			throw new NotImplementedException ();
 		}
@@ -476,7 +491,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public Guid GetScopeProps (StringBuilder szName, uint cchName, out uint pchName)
+		public Guid GetScopeProps (char* szName, uint cchName, out uint pchName)
 		{
 			throw new NotImplementedException ();
 		}
@@ -509,12 +524,12 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public uint GetTypeRefProps (uint tr, out uint ptkResolutionScope, StringBuilder szName, uint cchName)
+		public uint GetTypeRefProps (uint tr, out uint ptkResolutionScope, char* szName, uint cchName)
 		{
 			throw new NotImplementedException ();
 		}
 
-		public uint ResolveTypeRef (uint tr, ref Guid riid, out object ppIScope)
+		public uint ResolveTypeRef (uint tr, ref Guid riid, out IntPtr ppIScope)
 		{
 			throw new NotImplementedException ();
 		}
@@ -623,7 +638,7 @@ namespace Mono.Cecil.Pdb {
 			}
 		}
 
-		public uint GetMemberRefProps (uint mr, ref uint ptk, StringBuilder szMember, uint cchMember, out uint pchMember, out IntPtr ppvSigBlob)
+		public uint GetMemberRefProps (uint mr, ref uint ptk, char* szMember, uint cchMember, out uint pchMember, out IntPtr ppvSigBlob)
 		{
 			throw new NotImplementedException ();
 		}
@@ -638,7 +653,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public uint GetEventProps (uint ev, out uint pClass, StringBuilder szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, uint[] rmdOtherMethod, uint cMax)
+		public uint GetEventProps (uint ev, out uint pClass, char* szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, uint[] rmdOtherMethod, uint cMax)
 		{
 			throw new NotImplementedException ();
 		}
@@ -678,7 +693,7 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public uint GetModuleRefProps (uint mur, StringBuilder szName, uint cchName)
+		public uint GetModuleRefProps (uint mur, char* szName, uint cchName)
 		{
 			throw new NotImplementedException ();
 		}
@@ -703,12 +718,12 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public uint GetUserString (uint stk, StringBuilder szString, uint cchString)
+		public uint GetUserString (uint stk, char* szString, uint cchString)
 		{
 			throw new NotImplementedException ();
 		}
 
-		public uint GetPinvokeMap (uint tk, out uint pdwMappingFlags, StringBuilder szImportName, uint cchImportName, out uint pchImportName)
+		public uint GetPinvokeMap (uint tk, out uint pdwMappingFlags, char* szImportName, uint cchImportName, out uint pchImportName)
 		{
 			throw new NotImplementedException ();
 		}
@@ -748,22 +763,22 @@ namespace Mono.Cecil.Pdb {
 			throw new NotImplementedException ();
 		}
 
-		public uint GetMemberProps (uint mb, out uint pClass, StringBuilder szMember, uint cchMember, out uint pchMember, out uint pdwAttr, out IntPtr ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
+		public uint GetMemberProps (uint mb, out uint pClass, char* szMember, uint cchMember, out uint pchMember, out uint pdwAttr, out IntPtr ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
 		{
 			throw new NotImplementedException ();
 		}
 
-		public uint GetFieldProps (uint mb, out uint pClass, StringBuilder szField, uint cchField, out uint pchField, out uint pdwAttr, out IntPtr ppvSigBlob, out uint pcbSigBlob, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
+		public uint GetFieldProps (uint mb, out uint pClass, char* szField, uint cchField, out uint pchField, out uint pdwAttr, out IntPtr ppvSigBlob, out uint pcbSigBlob, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
 		{
 			throw new NotImplementedException ();
 		}
 
-		public uint GetPropertyProps (uint prop, out uint pClass, StringBuilder szProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out IntPtr ppvSig, out uint pbSig, out uint pdwCPlusTypeFlag, out IntPtr ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, uint[] rmdOtherMethod, uint cMax)
+		public uint GetPropertyProps (uint prop, out uint pClass, char* szProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out IntPtr ppvSig, out uint pbSig, out uint pdwCPlusTypeFlag, out IntPtr ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, uint[] rmdOtherMethod, uint cMax)
 		{
 			throw new NotImplementedException ();
 		}
 
-		public uint GetParamProps (uint tk, out uint pmd, out uint pulSequence, StringBuilder szName, uint cchName, out uint pchName, out uint pdwAttr, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
+		public uint GetParamProps (uint tk, out uint pmd, out uint pulSequence, char* szName, uint cchName, out uint pchName, out uint pdwAttr, out uint pdwCPlusTypeFlag, out IntPtr ppValue)
 		{
 			throw new NotImplementedException ();
 		}
