@@ -9,14 +9,24 @@
 
 using System;
 using System.Runtime.InteropServices;
+#if NET10_0_OR_GREATER
+using System.Runtime.InteropServices.Marshalling;
+#endif
 
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
+using Microsoft.Cci.Pdb;
 
 namespace Mono.Cecil.Pdb
 {
-	internal class SymWriter
+	internal partial class SymWriter
 	{
+#if NET10_0_OR_GREATER
+		[LibraryImport ("ole32.dll")]
+		private static partial int CoCreateInstance (ref Guid rclsid, IntPtr pUnkOuter, uint dwClsContext, ref Guid riid, out IntPtr ppv);
+
+		static readonly StrategyBasedComWrappers com_wrappers = new StrategyBasedComWrappers ();
+#else
 		[DllImport("ole32.dll")]
 		static extern int CoCreateInstance (
 			[In] ref Guid rclsid,
@@ -24,6 +34,7 @@ namespace Mono.Cecil.Pdb
 			[In] uint dwClsContext,
 			[In] ref Guid riid,
 			[Out, MarshalAs (UnmanagedType.Interface)] out object ppv);
+#endif
 
 		static Guid s_symUnmangedWriterIID = new Guid("0b97726e-9e6d-4f05-9a26-424022093caa");
 		static Guid s_CorSymWriter_SxS_ClassID = new Guid ("108296c1-281e-11d3-bd22-0000f80849bd");
@@ -34,10 +45,20 @@ namespace Mono.Cecil.Pdb
 
 		public SymWriter ()
 		{
+#if NET10_0_OR_GREATER
+			IntPtr pointer;
+			Marshal.ThrowExceptionForHR (CoCreateInstance (ref s_CorSymWriter_SxS_ClassID, IntPtr.Zero, 1, ref s_symUnmangedWriterIID, out pointer));
+			try {
+				writer = (ISymUnmanagedWriter2) com_wrappers.GetOrCreateObjectForComInstance (pointer, CreateObjectFlags.UniqueInstance);
+			} finally {
+				Marshal.Release (pointer);
+			}
+#else
 			object objWriter;
-			CoCreateInstance (ref s_CorSymWriter_SxS_ClassID, null, 1, ref s_symUnmangedWriterIID, out objWriter);
+			Marshal.ThrowExceptionForHR (CoCreateInstance (ref s_CorSymWriter_SxS_ClassID, null, 1, ref s_symUnmangedWriterIID, out objWriter));
 
 			writer = (ISymUnmanagedWriter2) objWriter;
+#endif
 			documents = new Collection<ISymUnmanagedDocumentWriter> ();
 		}
 
@@ -69,12 +90,17 @@ namespace Mono.Cecil.Pdb
 
 		public void DefineConstant2 (string name, object value, int sigToken)
 		{
+#if NET10_0_OR_GREATER
+			using (var variant = ComVariantMarshaller.ConvertToUnmanaged (value ?? 0))
+				writer.DefineConstant2 (name, variant, sigToken);
+#else
 			if (value == null) {
 				writer.DefineConstant2 (name, 0, sigToken);
 				return;
 			}
 
 			writer.DefineConstant2 (name, value, sigToken);
+#endif
 		}
 
 		public void Close ()
@@ -83,13 +109,22 @@ namespace Mono.Cecil.Pdb
 				return;
 
 			closed = true;
-			writer.Close ();
+			try {
+				writer.Close ();
+			} finally {
+#if NET10_0_OR_GREATER
+				((ComObject) (object) writer).FinalRelease ();
+				foreach (var document in documents)
+					((ComObject) (object) document).FinalRelease ();
+#else
 #pragma warning disable CA1416 // Validate platform compatibility
-			Marshal.ReleaseComObject (writer);
+				Marshal.ReleaseComObject (writer);
 
-			foreach (var document in documents)
-				Marshal.ReleaseComObject (document);
+				foreach (var document in documents)
+					Marshal.ReleaseComObject (document);
 #pragma warning restore CA1416 // Validate platform compatibility
+#endif
+			}
 		}
 
 		public void CloseMethod ()
@@ -121,9 +156,18 @@ namespace Mono.Cecil.Pdb
 			writer.DefineSequencePoints (document.Writer, offsets.Length, offsets, lines, columns, endLines, endColumns);
 		}
 
-		public void Initialize (object emitter, string filename, bool fFullBuild)
+		public unsafe void Initialize (ModuleMetadata emitter, string filename, bool fFullBuild)
 		{
+#if NET10_0_OR_GREATER
+			var pointer = ComInterfaceMarshaller<IMetaDataEmit>.ConvertToUnmanaged (emitter);
+			try {
+				writer.Initialize ((IntPtr) pointer, filename, IntPtr.Zero, fFullBuild);
+			} finally {
+				ComInterfaceMarshaller<IMetaDataEmit>.Free (pointer);
+			}
+#else
 			writer.Initialize (emitter, filename, null, fFullBuild);
+#endif
 		}
 
 		public void SetUserEntryPoint (int methodToken)
