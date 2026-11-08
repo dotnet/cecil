@@ -10,51 +10,71 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+#if NET10_0_OR_GREATER
+using System.Runtime.InteropServices.Marshalling;
+#endif
 
 using Mono.Cecil.Cil;
 
-namespace Mono.Cecil.Pdb {
+// Avoid Mono.Cecil.InterfaceImplementation shadowing the COM generator's file-local interface.
+namespace Microsoft.Cci.Pdb {
 
 	[Guid ("0B97726E-9E6D-4f05-9A26-424022093CAA")]
 	[InterfaceType (ComInterfaceType.InterfaceIsIUnknown)]
+#if NET10_0_OR_GREATER
+	[GeneratedComInterface (StringMarshalling = StringMarshalling.Utf16, Options = ComInterfaceOptions.ComObjectWrapper)]
+#else
 	[ComImport]
-	interface ISymUnmanagedWriter2 {
+#endif
+	partial interface ISymUnmanagedWriter2 {
 
 		void DefineDocument (
-			[In, MarshalAs (UnmanagedType.LPWStr)] string url,
-			[In] ref Guid langauge,
-			[In] ref Guid languageVendor,
-			[In] ref Guid documentType,
-			[Out, MarshalAs (UnmanagedType.Interface)] out ISymUnmanagedDocumentWriter pRetVal);
-		void SetUserEntryPoint ([In] int methodToken);
-		void OpenMethod ([In] int methodToken);
+			[MarshalAs (UnmanagedType.LPWStr)] string url,
+			ref Guid langauge,
+			ref Guid languageVendor,
+			ref Guid documentType,
+#if NET10_0_OR_GREATER
+			[MarshalUsing (typeof (UniqueComInterfaceMarshaller<ISymUnmanagedDocumentWriter>))] out ISymUnmanagedDocumentWriter pRetVal);
+#else
+			[MarshalAs (UnmanagedType.Interface)] out ISymUnmanagedDocumentWriter pRetVal);
+#endif
+		void SetUserEntryPoint (int methodToken);
+		void OpenMethod (int methodToken);
 		void CloseMethod ();
-		void OpenScope ([In] int startOffset, [Out] out int pRetVal);
-		void CloseScope ([In] int endOffset);
+		void OpenScope (int startOffset, out int pRetVal);
+		void CloseScope (int endOffset);
 		void SetScopeRange_Placeholder ();
 		void DefineLocalVariable_Placeholder ();
 		void DefineParameter_Placeholder ();
 		void DefineField_Placeholder ();
 		void DefineGlobalVariable_Placeholder ();
 		void Close ();
-		void SetSymAttribute (uint parent, string name, uint data, IntPtr signature);
-		void OpenNamespace ([In, MarshalAs (UnmanagedType.LPWStr)] string name);
+		void SetSymAttribute (uint parent, [MarshalAs (UnmanagedType.LPWStr)] string name, uint data, IntPtr signature);
+		void OpenNamespace ([MarshalAs (UnmanagedType.LPWStr)] string name);
 		void CloseNamespace ();
-		void UsingNamespace ([In, MarshalAs (UnmanagedType.LPWStr)] string fullName);
+		void UsingNamespace ([MarshalAs (UnmanagedType.LPWStr)] string fullName);
 		void SetMethodSourceRange_Placeholder ();
 		void Initialize (
+#if NET10_0_OR_GREATER
+			IntPtr emitter,
+#else
 			[In, MarshalAs (UnmanagedType.IUnknown)] object emitter,
-			[In, MarshalAs (UnmanagedType.LPWStr)] string filename,
+#endif
+			[MarshalAs (UnmanagedType.LPWStr)] string filename,
+#if NET10_0_OR_GREATER
+			IntPtr pIStream,
+#else
 			[In] IStream pIStream,
-			[In] bool fFullBuild);
+#endif
+			[MarshalAs (UnmanagedType.Bool)] bool fFullBuild);
 		void GetDebugInfo (
-			[Out] out ImageDebugDirectory pIDD,
-			[In] int cData,
-			[Out] out int pcData,
+			out ImageDebugDirectory pIDD,
+			int cData,
+			out int pcData,
 			[In, Out, MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 1)] byte [] data);
 		void DefineSequencePoints (
-			[In, MarshalAs (UnmanagedType.Interface)] ISymUnmanagedDocumentWriter document,
-			[In] int spCount,
+			[MarshalAs (UnmanagedType.Interface)] ISymUnmanagedDocumentWriter document,
+			int spCount,
 			[In, MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 1)] int [] offsets,
 			[In, MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 1)] int [] lines,
 			[In, MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 1)] int [] columns,
@@ -66,21 +86,25 @@ namespace Mono.Cecil.Pdb {
 		void Abort_Placeholder ();
 
 		void DefineLocalVariable2 (
-			[In, MarshalAs (UnmanagedType.LPWStr)] string name,
-			[In] int attributes,
-			[In] int sigToken,
-			[In] int addrKind,
-			[In] int addr1,
-			[In] int addr2,
-			[In] int addr3,
-			[In] int startOffset,
-			[In] int endOffset);
+			[MarshalAs (UnmanagedType.LPWStr)] string name,
+			int attributes,
+			int sigToken,
+			int addrKind,
+			int addr1,
+			int addr2,
+			int addr3,
+			int startOffset,
+			int endOffset);
 
 		void DefineGlobalVariable2_Placeholder ();
 
 		void DefineConstant2 (
-			[In, MarshalAs (UnmanagedType.LPWStr)] string name,
+			[MarshalAs (UnmanagedType.LPWStr)] string name,
+#if NET10_0_OR_GREATER
+			ComVariant variant,
+#else
 			[In, MarshalAs (UnmanagedType.Struct)] object variant,
-			[In] int sigToken);
+#endif
+			int sigToken);
 	}
 }

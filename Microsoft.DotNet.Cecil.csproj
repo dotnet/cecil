@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.Build.NoTargets">
   <PropertyGroup>
-    <TargetFramework>$(ToolsFramework)</TargetFramework>
+    <TargetFrameworks>$(ToolsFramework);$(NetMinimum)</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <!-- Reference the outputs for the dependency nodes calculation. -->

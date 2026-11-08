@@ -10,7 +10,14 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle ("Mono.Cecil.Pdb")]
 
 [assembly: CLSCompliant (false)]
+
+#if NET10_0_OR_GREATER
+[assembly: DisableRuntimeMarshalling]
+#endif
+
+[assembly: InternalsVisibleTo ("Mono.Cecil.Pdb.Tests, PublicKey=" + Consts.PublicKey)]

@@ -2,6 +2,7 @@
   <Import Project="..\..\..\Mono.Cecil.Tests.props" />
   <PropertyGroup>
     <TargetFramework>$(NetCoreAppTestsCurrent)</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Mono.Cecil.csproj">

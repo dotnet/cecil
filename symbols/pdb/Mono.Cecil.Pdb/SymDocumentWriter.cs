@@ -8,6 +8,7 @@
 //
 
 using System;
+using Microsoft.Cci.Pdb;
 
 namespace Mono.Cecil.Pdb
 {
